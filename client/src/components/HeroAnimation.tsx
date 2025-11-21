@@ -7,63 +7,72 @@ const TOKENS = [
   "Systems-Oriented",
   "Clear Interactions",
   "Detail-Oriented",
-  "Problem Solver"
+  "Problem Solver",
 ];
 
 // Animation timing constants (in milliseconds)
 const TIMING = {
-  ENTER: 900,        // Entrance animation duration
-  HOLD: 1400,        // Hold at center duration
-  GLOW_IN: 120,      // Glow fade-in at start of hold
-  GLOW_OUT: 120,     // Glow fade-out at end of hold
-  EXIT: 900,         // Exit animation duration
-  DESATURATE: 900,   // Desaturation during exit
+  ENTER: 900, // Entrance animation duration
+  HOLD: 1400, // Hold at center duration
+  GLOW_IN: 120, // Glow fade-in at start of hold
+  GLOW_OUT: 120, // Glow fade-out at end of hold
+  EXIT: 900, // Exit animation duration
+  DESATURATE: 900, // Desaturation during exit
 } as const;
 
 // Total cycle time per token
 const CYCLE_TIME = TIMING.ENTER + TIMING.HOLD + TIMING.EXIT;
 
-type AnimationPhase = 'enter' | 'hold-glow-in' | 'hold' | 'hold-glow-out' | 'exit' | 'idle';
+type AnimationPhase =
+  | "enter"
+  | "hold-glow-in"
+  | "hold"
+  | "hold-glow-out"
+  | "exit"
+  | "idle";
 
 export const HeroAnimation = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [phase, setPhase] = useState<AnimationPhase>('idle');
+  const [phase, setPhase] = useState<AnimationPhase>("idle");
   const [bgDim, setBgDim] = useState(false);
   const timeoutRef = useRef<number | null>(null);
-  
+
   const currentToken = TOKENS[currentIndex];
 
   useEffect(() => {
     // Start the animation cycle
     const runCycle = () => {
       // Enter phase
-      setPhase('enter');
-      
+      setPhase("enter");
+
       // After enter, start glow-in (beginning of hold)
       timeoutRef.current = window.setTimeout(() => {
-        setPhase('hold-glow-in');
-        
+        setPhase("hold-glow-in");
+
         // After glow-in, maintain hold
         timeoutRef.current = window.setTimeout(() => {
-          setPhase('hold');
-          
+          setPhase("hold");
+
           // Before hold ends, start glow-out
-          timeoutRef.current = window.setTimeout(() => {
-            setPhase('hold-glow-out');
-            
-            // After glow-out, start exit
-            timeoutRef.current = window.setTimeout(() => {
-              setPhase('exit');
-              setBgDim(true); // Dim background during exit
-              
-              // After exit completes, move to next token
+          timeoutRef.current = window.setTimeout(
+            () => {
+              setPhase("hold-glow-out");
+
+              // After glow-out, start exit
               timeoutRef.current = window.setTimeout(() => {
-                setPhase('idle');
-                setBgDim(false);
-                setCurrentIndex((prev) => (prev + 1) % TOKENS.length);
-              }, TIMING.EXIT);
-            }, TIMING.GLOW_OUT);
-          }, TIMING.HOLD - TIMING.GLOW_IN - TIMING.GLOW_OUT);
+                setPhase("exit");
+                setBgDim(true); // Dim background during exit
+
+                // After exit completes, move to next token
+                timeoutRef.current = window.setTimeout(() => {
+                  setPhase("idle");
+                  setBgDim(false);
+                  setCurrentIndex((prev) => (prev + 1) % TOKENS.length);
+                }, TIMING.EXIT);
+              }, TIMING.GLOW_OUT);
+            },
+            TIMING.HOLD - TIMING.GLOW_IN - TIMING.GLOW_OUT,
+          );
         }, TIMING.GLOW_IN);
       }, TIMING.ENTER);
     };
@@ -81,17 +90,17 @@ export const HeroAnimation = () => {
 
   const getTagClassName = () => {
     const baseClasses = "tag";
-    
+
     switch (phase) {
-      case 'enter':
+      case "enter":
         return `${baseClasses} tag--entering`;
-      case 'hold-glow-in':
+      case "hold-glow-in":
         return `${baseClasses} tag--active tag--glow-in`;
-      case 'hold':
+      case "hold":
         return `${baseClasses} tag--active tag--glowing`;
-      case 'hold-glow-out':
+      case "hold-glow-out":
         return `${baseClasses} tag--active tag--glow-out`;
-      case 'exit':
+      case "exit":
         return `${baseClasses} tag--exiting`;
       default:
         return `${baseClasses} tag--idle`;
@@ -101,17 +110,17 @@ export const HeroAnimation = () => {
   return (
     <div className="hero-grid-wrap">
       {/* Static grid background - user will provide grid-perspective.png */}
-      <div 
+      <div
         className="grid-bg"
         style={{
           opacity: bgDim ? 0.9 : 1,
-          transition: 'opacity 0.6s ease-in-out'
+          transition: "opacity 0.6s ease-in-out",
         }}
       />
-      
+
       {/* Tag animation stage */}
       <div className="tag-stage">
-        <div 
+        <div
           className={getTagClassName()}
           aria-live="polite"
           aria-atomic="true"
@@ -139,7 +148,7 @@ export const HeroAnimation = () => {
         .grid-bg {
           position: absolute;
           inset: 0;
-          background-image: url('/prespective grid 2.png');
+          background-image: url('/perspective-grid.png');
           background-size: cover;
           background-position: center;
           background-repeat: no-repeat;
