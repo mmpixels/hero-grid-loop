@@ -139,7 +139,7 @@ export const HeroAnimation = () => {
         .grid-bg {
           position: absolute;
           inset: 0;
-          background-image: url('/grid-perspective.png');
+          background-image: url('/prespective grid 2.png');
           background-size: cover;
           background-position: center;
           background-repeat: no-repeat;
