@@ -13,9 +13,9 @@ const TOKENS = [
 // Animation timing constants (in milliseconds)
 const TIMING = {
   ENTER: 900, // Entrance animation duration
-  HOLD: 1400, // Hold at center duration
-  GLOW_IN: 120, // Glow fade-in at start of hold
-  GLOW_OUT: 120, // Glow fade-out at end of hold
+  HOLD: 1800, // Hold at center duration
+  GLOW_IN: 360, // Glow fade-in at start of hold
+  GLOW_OUT: 500, // Glow fade-out at end of hold
   EXIT: 900, // Exit animation duration
   DESATURATE: 900, // Desaturation during exit
 } as const;
@@ -65,7 +65,7 @@ export const HeroAnimation = () => {
 
                 // After exit completes, move to next token
                 timeoutRef.current = window.setTimeout(() => {
-                  setPhase("idle");
+                  setPhase("enter");
                   setBgDim(false);
                   setCurrentIndex((prev) => (prev + 1) % TOKENS.length);
                 }, TIMING.EXIT);
@@ -130,9 +130,9 @@ export const HeroAnimation = () => {
       </div>
 
       {/* Accessible list for screen readers */}
-      <div className="sr-only" aria-live="polite">
+      {/* <div className="sr-only" aria-live="polite">
         Current focus: {currentToken}
-      </div>
+      </div> */}
 
       <style>{`
         /* Container */
@@ -166,121 +166,211 @@ export const HeroAnimation = () => {
         }
 
         /* Tag styling - pill shape */
-        .tag {
-          position: relative;
-          padding: 10px 18px;
-          border-radius: 10px;
-          background-color: rgba(0, 123, 167, 0.25);
-          color: #022028;
-          font-family: system-ui, -apple-system, sans-serif;
-          font-size: 18px;
-          font-weight: 500;
-          letter-spacing: -0.01em;
-          white-space: nowrap;
-          will-change: transform, opacity;
-          backface-visibility: hidden;
-          -webkit-font-smoothing: antialiased;
-        }
+        /* Responsive tag base */
+.tag {
+  position: relative;
+  /* responsive font size: min 18px, preferred 2vw, max 28px */
+  font-size: clamp(20px, 2vw, 28px);
+  /* padding scaled by font-size */
+  padding: 0.8em 2.6em;
+  border-radius: 0.625em;
+  background-color: rgba(0, 123, 167, 0.25); /* stronger fill - keeps color */
+  color: #282626;
+  font-family: noto-sans, sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  will-change: transform, opacity, filter, box-shadow;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  transform-origin: center center;
+  /* ensure hardware acceleration path for transform */
+  transform: translate3d(0,0,0);
+  /* <-- ADD THIS: smooth transitions for glow/scale */
+  transition:
+    transform 360ms cubic-bezier(0.2, 0.85, 0.24, 1),
+    box-shadow 420ms cubic-bezier(0.2, 0.85, 0.24, 1),
+    filter 420ms cubic-bezier(0.2, 0.85, 0.24, 1),
+    opacity 180ms ease-in-out;
+}
 
-        /* Animation states */
-        .tag--idle {
-          opacity: 0;
-          transform: translateY(30px);
-        }
+/* Soft underlay to mask the grid and add depth */
+.tag::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.02),
+    rgba(0,0,0,0.04)
+  ); /* subtle inner grad for depth */
+  pointer-events: none;
+  z-index: -1;
+  box-shadow: none;
+}
 
-        .tag--entering {
-          animation: tag-enter ${TIMING.ENTER}ms cubic-bezier(0, 0, 0.2, 1) forwards;
-        }
+/* Idle / translated state uses em units so it scales */
+.tag--idle {
+  opacity: 0;
+  transform: translate3d(0, 1.6em, 0); /* 1.6em -> scales with font-size */
+}
 
-        .tag--active {
-          opacity: 1;
-          transform: translateY(0);
-        }
+/* Active visible state */
+.tag--active {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
 
-        .tag--glow-in {
-          animation: tag-glow-in ${TIMING.GLOW_IN}ms ease-out forwards;
-        }
+/* Glow animation states use keyframes defined below */
+.tag--entering {
+  animation: tag-enter 900ms cubic-bezier(.0,0,.2,1) forwards;
+}
 
-        .tag--glowing {
-          filter: brightness(1.25) saturate(1.1);
-          box-shadow: 0 12px 30px rgba(0, 123, 167, 0.2);
-          transform: scale(1.03);
-        }
+.tag--glow-in {
+  animation: tag-glow-in 360ms cubic-bezier(0.2, 0.85, 0.24, 1) ease-out forwards;
+}
 
-        .tag--glow-out {
-          animation: tag-glow-out ${TIMING.GLOW_OUT}ms ease-in forwards;
-        }
+.tag--glowing {
+  /* stronger appearance while glowing */
+  filter: brightness(1.12) saturate(1.06); /* softened a bit */
+  /* box-shadow uses em so it scales with the tag */
+   box-shadow:
+    0 1.0em 2.4em rgba(0,123,167,0.20),
+    0 0.2em 0.5em rgba(0,123,167,0.10);
+  transform: scale(1.03);
+}
 
-        .tag--exiting {
-          animation: tag-exit ${TIMING.EXIT}ms cubic-bezier(0.4, 0, 1, 1) forwards;
-          filter: saturate(0.95);
-        }
+.tag--glow-out {
+  animation: tag-glow-out 500ms cubic-bezier(0.2, 0.85, 0.24, 1) ease-in forwards; /* slower fade-out */
+}
 
-        /* Tablet adjustments */
-        @media (max-width: 768px) {
-          .tag {
-            font-size: 16px;
-            padding: 9px 16px;
-          }
-        }
+.tag--exiting {
+  animation: tag-exit 300ms cubic-bezier(.4,0,1,1) forwards;
+  filter: saturate(0.95);
+}
 
-        /* Mobile adjustments */
-        @media (max-width: 480px) {
-          .hero-grid-wrap {
-            min-height: 500px;
-          }
+/* Keyframes - use em units for translation & box-shadow so they scale */
+@keyframes tag-enter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 1.4em, 0) scale(0.96);
+  }
+  60% {
+    opacity: 1;
+    transform: translate3d(0, -0.12em, 0) scale(1.03); /* small overshoot */
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
 
-          .tag {
-            font-size: 14px;
-            padding: 8px 14px;
-            transform: scale(0.85);
-          }
+@keyframes tag-glow-in {
+  0% {
+    /* no glow */
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(0,123,167,0);
+    filter: brightness(1) saturate(1);
+  45% {
+    transform: scale(1.015);
+    box-shadow: 0 0.5em 1.0em rgba(0,123,167,0.10);
+    filter: brightness(1.06) saturate(1.03);
+  }
+  80% {
+    transform: scale(1.025);
+    box-shadow: 0 0.85em 1.8em rgba(0,123,167,0.14);
+    filter: brightness(1.10) saturate(1.04);
+  }
+  100% {
+    transform: scale(1.03);
+    box-shadow: 0 1.0em 2.4em rgba(0,123,167,0.16);
+    filter: brightness(1.12) saturate(1.06);
+  }
+}
 
-          .tag--idle {
-            transform: translateY(18px) scale(0.85);
-          }
-        }
+@keyframes tag-glow-out {
+  0% {
+    transform: scale(1.03);
+    box-shadow: 0 1.0em 2.6em rgba(0,123,167,0.16);
+    filter: brightness(1.12) saturate(1.06);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(0,123,167,0);
+    filter: brightness(1) saturate(1);
+  }
+}
 
-        /* Reduced motion - crossfade only */
-        @media (prefers-reduced-motion: reduce) {
-          .tag--entering,
-          .tag--exiting,
-          .tag--glow-in,
-          .tag--glow-out {
-            animation: none !important;
-          }
+@keyframes tag-exit {
+  0% {
+    transform: scale(1.03);
+    box-shadow: 0 1.0em 2.4em rgba(0,123,167,0.16);
+    filter: brightness(1.12) saturate(1.06);
+  }
+  45% {
+    transform: scale(1.02);
+    box-shadow: 0 0.7em 1.4em rgba(0,123,167,0.10);
+    filter: brightness(1.07) saturate(1.03);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(0,123,167,0);
+    filter: brightness(1) saturate(1);
+  }
+}
 
-          .tag--entering {
-            opacity: 1;
-            transform: none;
-          }
+/* Tablet adjustments */
+@media (max-width: 768px) {
+  .tag {
+    /* slightly smaller on tablets via clamp will already scale,
+       but reduce padding a touch if desired */
+    padding: 0.55em 1em;
+  }
+}
 
-          .tag--exiting {
-            opacity: 0;
-            transform: none;
-            transition: opacity 0.3s ease-in-out;
-          }
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .hero-grid-wrap {
+    min-height: 500px;
+  }
+  .tag {
+    /* clamp already shrinks to the min (14px). If you want even smaller:
+       font-size: clamp(16px, 3.5vw, 20px); */
+    padding: 0.8em 1.8em;
+    /* avoid setting a hard transform scale here — we use em-based values above */
+  }
+  .tag--idle {
+    transform: translate3d(0, 1em, 0); /* smaller idle offset on tiny screens */
+  }
+}
 
-          .tag--glowing,
-          .tag--active {
-            filter: none !important;
-            box-shadow: none !important;
-            transform: none !important;
-          }
-        }
+/* Reduced motion - prefer crossfade only */
+@media (prefers-reduced-motion: reduce) {
+  .tag--entering,
+  .tag--exiting,
+  .tag--glow-in,
+  .tag--glow-out {
+    animation: none !important;
+  }
 
-        /* Screen reader only */
-        .sr-only {
-          position: absolute;
-          width: 1px;
-          height: 1px;
-          padding: 0;
-          margin: -1px;
-          overflow: hidden;
-          clip: rect(0, 0, 0, 0);
-          white-space: nowrap;
-          border-width: 0;
-        }
+  .tag--entering {
+    opacity: 1;
+    transform: none;
+  }
+
+  .tag--exiting {
+    opacity: 0;
+    transform: none;
+    transition: opacity 0.25s ease-in-out;
+  }
+
+  .tag--glowing,
+  .tag--active {
+    filter: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+}
       `}</style>
     </div>
   );
