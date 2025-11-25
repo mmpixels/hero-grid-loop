@@ -182,14 +182,26 @@ All colors MUST be HSL.
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  @keyframes tag-enter,
+  /* Disable tag-enter */
+  @keyframes tag-enter {
+    from, to { transform: none; }
+  }
+
+  /* Disable tag-exit */
   @keyframes tag-exit {
+    from, to { transform: none; }
+  }
+
+  /* Disable tag-glow-in */
+  @keyframes tag-glow-in {
     from, to {
+      filter: none;
+      box-shadow: none;
       transform: none;
     }
   }
-  
-  @keyframes tag-glow-in,
+
+  /* Disable tag-glow-out */
   @keyframes tag-glow-out {
     from, to {
       filter: none;
