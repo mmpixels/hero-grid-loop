@@ -1,6 +1,5 @@
 name: Build and deploy to GitHub Pages
 
-# Allow workflow to push the built files using the GITHUB_TOKEN
 permissions:
   contents: write
   pages: write
@@ -34,4 +33,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist/public
+          publish_dir: ./dist
