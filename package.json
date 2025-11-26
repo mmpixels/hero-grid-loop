@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch --clear-screen=false --ignore 'client/**' --ignore 'dist/**' --ignore 'node_modules/**' --ignore '*.config.*' server/index.ts",
     "build": "npm run build:client && npm run build:server",
-    "build:client": "vite build --outDir dist",
+    "build:client": "cd client && vite build --outDir ../dist",
     "build:server": "esbuild server/index.ts --platform=node --bundle --format=esm --packages=external --outfile=dist/index.js",
     "start": "NODE_ENV=production node dist/index.js",
     "preview": "vite preview"
