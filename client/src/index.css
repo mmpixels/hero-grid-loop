@@ -213,7 +213,7 @@ All colors MUST be HSL.
 
 @layer base {
   * {
-    @apply border-border;
+    border: 1px solid rgba(148,163,184,0.2); /* if you want a custom style instead of tailwind */
   }
 
   body {
